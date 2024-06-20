@@ -31,6 +31,9 @@ const Navbar = () => {
             <Link as={RouterLink} to="/group-management" color="white" fontSize="lg" fontWeight="bold">
               Group Management
             </Link>
+            <Link as={RouterLink} to="/task-management" color="white" fontSize="lg" fontWeight="bold">
+              Task Management
+            </Link>
             <Button onClick={handleLogout} colorScheme="red" size="sm">
               Logout
             </Button>
