@@ -1,19 +1,21 @@
 import { useEffect } from 'react';
-import { Box, Button, Container, Heading, VStack, Text, Alert, AlertIcon, FormControl, FormLabel, Input, Select } from '@chakra-ui/react';
+import { Box, Button, Container, Heading, VStack, Text, Alert, AlertIcon, FormControl, FormLabel, Input, Select, Textarea } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useSupabaseAuth } from '../integrations/supabase/auth.jsx';
-import { useTasks, useAddTask, useUpdateTask, useDeleteTask, useGroups } from '../integrations/supabase/index.js';
+import { useTasks, useAddTask, useUpdateTask, useDeleteTask, useGroups, useComments, useAddComment } from '../integrations/supabase/index.js';
 
 const TaskManagement = () => {
   const { session, loading } = useSupabaseAuth();
   const { data: tasks, isLoading: tasksLoading, error: tasksError } = useTasks();
   const { data: groups, isLoading: groupsLoading, error: groupsError } = useGroups();
+  const { data: comments, isLoading: commentsLoading, error: commentsError } = useComments();
   const { mutate: addTask } = useAddTask();
   const { mutate: updateTask } = useUpdateTask();
   const { mutate: deleteTask } = useDeleteTask();
+  const { mutate: addComment } = useAddComment();
   const navigate = useNavigate();
-  const { register, handleSubmit, setValue } = useForm();
+  const { register, handleSubmit, setValue, reset } = useForm();
 
   useEffect(() => {
     if (!session) {
@@ -27,6 +29,7 @@ const TaskManagement = () => {
     } else {
       addTask(data);
     }
+    reset();
   };
 
   const handleEdit = task => {
@@ -43,9 +46,14 @@ const TaskManagement = () => {
     deleteTask(id);
   };
 
-  if (loading || tasksLoading || groupsLoading) return <Text>Loading...</Text>;
+  const handleAddComment = (taskId, comment) => {
+    addComment({ task_id: taskId, comment });
+  };
+
+  if (loading || tasksLoading || groupsLoading || commentsLoading) return <Text>Loading...</Text>;
   if (tasksError) return <Text>Error: {tasksError.message}</Text>;
   if (groupsError) return <Text>Error: {groupsError.message}</Text>;
+  if (commentsError) return <Text>Error: {commentsError.message}</Text>;
 
   return (
     <Container centerContent>
@@ -102,6 +110,21 @@ const TaskManagement = () => {
             <Text><strong>Group:</strong> {groups.find(group => group.id === task.group_id)?.name}</Text>
             <Button mt={2} colorScheme="blue" onClick={() => handleEdit(task)}>Edit</Button>
             <Button mt={2} ml={2} colorScheme="red" onClick={() => handleDelete(task.id)}>Delete</Button>
+            <Box mt={4}>
+              <Heading as="h3" size="sm">Comments</Heading>
+              {comments.filter(comment => comment.task_id === task.id).map(comment => (
+                <Box key={comment.id} p={2} borderWidth={1} borderRadius="md" mt={2}>
+                  <Text>{comment.comment}</Text>
+                </Box>
+              ))}
+              <form onSubmit={handleSubmit(data => handleAddComment(task.id, data.comment))}>
+                <FormControl mt={2}>
+                  <FormLabel>Add Comment</FormLabel>
+                  <Textarea {...register('comment')} />
+                </FormControl>
+                <Button mt={2} colorScheme="teal" type="submit">Add Comment</Button>
+              </form>
+            </Box>
           </Box>
         ))}
       </VStack>

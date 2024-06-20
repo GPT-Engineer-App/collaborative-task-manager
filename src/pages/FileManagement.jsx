@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { Box, Button, Container, Heading, VStack, Text, Alert, AlertIcon, FormControl, FormLabel, Input, Select } from '@chakra-ui/react';
+import { Box, Button, Container, Heading, VStack, Text, Alert, AlertIcon, FormControl, FormLabel, Input, Select, Textarea } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useSupabaseAuth } from '../integrations/supabase/auth.jsx';
-import { useFiles, useAddFile, useUpdateFile, useDeleteFile, useFileVersions, useAddFileVersion, useGroups, useFileAccessPermissions, useAddFileAccessPermission, useUsers, useContextualRelations, useAddContextualRelation, useEntanglementNodes, useAddEntanglementNode } from '../integrations/supabase/index.js';
+import { useFiles, useAddFile, useUpdateFile, useDeleteFile, useFileVersions, useAddFileVersion, useGroups, useFileAccessPermissions, useAddFileAccessPermission, useUsers, useContextualRelations, useAddContextualRelation, useEntanglementNodes, useAddEntanglementNode, useComments, useAddComment } from '../integrations/supabase/index.js';
 
 const FileManagement = () => {
   const { session, loading } = useSupabaseAuth();
@@ -14,6 +14,7 @@ const FileManagement = () => {
   const { data: users, isLoading: usersLoading, error: usersError } = useUsers();
   const { data: contextualRelations, isLoading: contextualRelationsLoading, error: contextualRelationsError } = useContextualRelations();
   const { data: entanglementNodes, isLoading: entanglementNodesLoading, error: entanglementNodesError } = useEntanglementNodes();
+  const { data: comments, isLoading: commentsLoading, error: commentsError } = useComments();
   const { mutate: addFile } = useAddFile();
   const { mutate: updateFile } = useUpdateFile();
   const { mutate: deleteFile } = useDeleteFile();
@@ -21,8 +22,9 @@ const FileManagement = () => {
   const { mutate: addFileAccessPermission } = useAddFileAccessPermission();
   const { mutate: addContextualRelation } = useAddContextualRelation();
   const { mutate: addEntanglementNode } = useAddEntanglementNode();
+  const { mutate: addComment } = useAddComment();
   const navigate = useNavigate();
-  const { register, handleSubmit, setValue } = useForm();
+  const { register, handleSubmit, setValue, reset } = useForm();
 
   useEffect(() => {
     if (!session) {
@@ -36,6 +38,7 @@ const FileManagement = () => {
     } else {
       addFile(data);
     }
+    reset();
   };
 
   const handleEdit = file => {
@@ -83,7 +86,11 @@ const FileManagement = () => {
     addEntanglementNode(nodeData);
   };
 
-  if (loading || filesLoading || fileVersionsLoading || groupsLoading || fileAccessPermissionsLoading || usersLoading || contextualRelationsLoading || entanglementNodesLoading) return <Text>Loading...</Text>;
+  const handleAddComment = (fileId, comment) => {
+    addComment({ file_id: fileId, comment });
+  };
+
+  if (loading || filesLoading || fileVersionsLoading || groupsLoading || fileAccessPermissionsLoading || usersLoading || contextualRelationsLoading || entanglementNodesLoading || commentsLoading) return <Text>Loading...</Text>;
   if (filesError) return <Text>Error: {filesError.message}</Text>;
   if (fileVersionsError) return <Text>Error: {fileVersionsError.message}</Text>;
   if (groupsError) return <Text>Error: {groupsError.message}</Text>;
@@ -91,6 +98,7 @@ const FileManagement = () => {
   if (usersError) return <Text>Error: {usersError.message}</Text>;
   if (contextualRelationsError) return <Text>Error: {contextualRelationsError.message}</Text>;
   if (entanglementNodesError) return <Text>Error: {entanglementNodesError.message}</Text>;
+  if (commentsError) return <Text>Error: {commentsError.message}</Text>;
 
   return (
     <Container centerContent>
@@ -146,6 +154,21 @@ const FileManagement = () => {
                 <option value="type2">Type 2</option>
               </Select>
             </FormControl>
+            <Box mt={4}>
+              <Heading as="h3" size="sm">Comments</Heading>
+              {comments.filter(comment => comment.file_id === file.id).map(comment => (
+                <Box key={comment.id} p={2} borderWidth={1} borderRadius="md" mt={2}>
+                  <Text>{comment.comment}</Text>
+                </Box>
+              ))}
+              <form onSubmit={handleSubmit(data => handleAddComment(file.id, data.comment))}>
+                <FormControl mt={2}>
+                  <FormLabel>Add Comment</FormLabel>
+                  <Textarea {...register('comment')} />
+                </FormControl>
+                <Button mt={2} colorScheme="teal" type="submit">Add Comment</Button>
+              </form>
+            </Box>
           </Box>
         ))}
       </VStack>
