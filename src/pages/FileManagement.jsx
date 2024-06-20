@@ -3,7 +3,7 @@ import { Box, Button, Container, Heading, VStack, Text, Alert, AlertIcon, FormCo
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useSupabaseAuth } from '../integrations/supabase/auth.jsx';
-import { useFiles, useAddFile, useUpdateFile, useDeleteFile, useFileVersions, useAddFileVersion, useGroups, useFileAccessPermissions, useAddFileAccessPermission, useUsers } from '../integrations/supabase/index.js';
+import { useFiles, useAddFile, useUpdateFile, useDeleteFile, useFileVersions, useAddFileVersion, useGroups, useFileAccessPermissions, useAddFileAccessPermission, useUsers, useContextualRelations, useAddContextualRelation, useEntanglementNodes, useAddEntanglementNode } from '../integrations/supabase/index.js';
 
 const FileManagement = () => {
   const { session, loading } = useSupabaseAuth();
@@ -12,11 +12,15 @@ const FileManagement = () => {
   const { data: groups, isLoading: groupsLoading, error: groupsError } = useGroups();
   const { data: fileAccessPermissions, isLoading: fileAccessPermissionsLoading, error: fileAccessPermissionsError } = useFileAccessPermissions();
   const { data: users, isLoading: usersLoading, error: usersError } = useUsers();
+  const { data: contextualRelations, isLoading: contextualRelationsLoading, error: contextualRelationsError } = useContextualRelations();
+  const { data: entanglementNodes, isLoading: entanglementNodesLoading, error: entanglementNodesError } = useEntanglementNodes();
   const { mutate: addFile } = useAddFile();
   const { mutate: updateFile } = useUpdateFile();
   const { mutate: deleteFile } = useDeleteFile();
   const { mutate: addFileVersion } = useAddFileVersion();
   const { mutate: addFileAccessPermission } = useAddFileAccessPermission();
+  const { mutate: addContextualRelation } = useAddContextualRelation();
+  const { mutate: addEntanglementNode } = useAddEntanglementNode();
   const navigate = useNavigate();
   const { register, handleSubmit, setValue } = useForm();
 
@@ -62,12 +66,31 @@ const FileManagement = () => {
     addFileAccessPermission(permissionData);
   };
 
-  if (loading || filesLoading || fileVersionsLoading || groupsLoading || fileAccessPermissionsLoading || usersLoading) return <Text>Loading...</Text>;
+  const handleAddContextualRelation = (file1, file2, relationType) => {
+    const relationData = {
+      file1_id: file1.id,
+      file2_id: file2.id,
+      relation_type: relationType
+    };
+    addContextualRelation(relationData);
+  };
+
+  const handleAddEntanglementNode = (file, nodeType) => {
+    const nodeData = {
+      file_id: file.id,
+      node_type: nodeType
+    };
+    addEntanglementNode(nodeData);
+  };
+
+  if (loading || filesLoading || fileVersionsLoading || groupsLoading || fileAccessPermissionsLoading || usersLoading || contextualRelationsLoading || entanglementNodesLoading) return <Text>Loading...</Text>;
   if (filesError) return <Text>Error: {filesError.message}</Text>;
   if (fileVersionsError) return <Text>Error: {fileVersionsError.message}</Text>;
   if (groupsError) return <Text>Error: {groupsError.message}</Text>;
   if (fileAccessPermissionsError) return <Text>Error: {fileAccessPermissionsError.message}</Text>;
   if (usersError) return <Text>Error: {usersError.message}</Text>;
+  if (contextualRelationsError) return <Text>Error: {contextualRelationsError.message}</Text>;
+  if (entanglementNodesError) return <Text>Error: {entanglementNodesError.message}</Text>;
 
   return (
     <Container centerContent>
@@ -104,6 +127,23 @@ const FileManagement = () => {
                 {users.map(user => (
                   <option key={user.id} value={user.id}>{user.email}</option>
                 ))}
+              </Select>
+            </FormControl>
+            <FormControl mt={2}>
+              <FormLabel>Add Contextual Relation</FormLabel>
+              <Select onChange={(e) => handleAddContextualRelation(file, files.find(f => f.id === e.target.value), 'related')}>
+                <option value="">Select File</option>
+                {files.map(f => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl mt={2}>
+              <FormLabel>Add Entanglement Node</FormLabel>
+              <Select onChange={(e) => handleAddEntanglementNode(file, e.target.value)}>
+                <option value="">Select Node Type</option>
+                <option value="type1">Type 1</option>
+                <option value="type2">Type 2</option>
               </Select>
             </FormControl>
           </Box>
