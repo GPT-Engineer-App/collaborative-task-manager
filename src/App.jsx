@@ -9,6 +9,7 @@ import Profile from "./pages/Profile.jsx";
 import GroupManagement from "./pages/GroupManagement.jsx";
 import TaskManagement from "./pages/TaskManagement.jsx";
 import FileManagement from "./pages/FileManagement.jsx";
+import TestingFeedback from "./pages/TestingFeedback.jsx";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route exact path="/group-management" element={<GroupManagement />} />
         <Route exact path="/task-management" element={<TaskManagement />} />
         <Route exact path="/file-management" element={<FileManagement />} />
+        <Route exact path="/testing-feedback" element={<TestingFeedback />} />
       </Routes>
     </Router>
   );
