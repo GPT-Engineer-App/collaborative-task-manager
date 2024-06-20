@@ -23,9 +23,6 @@ const Navbar = () => {
         <Link as={RouterLink} to="/contact" color="white" fontSize="lg" fontWeight="bold">
           Contact
         </Link>
-        <Link as={RouterLink} to="/testing-feedback" color="white" fontSize="lg" fontWeight="bold">
-          Testing Feedback
-        </Link>
         {session ? (
           <>
             <Link as={RouterLink} to="/profile" color="white" fontSize="lg" fontWeight="bold">
