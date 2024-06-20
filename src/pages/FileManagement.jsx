@@ -3,7 +3,7 @@ import { Box, Button, Container, Heading, VStack, Text, Alert, AlertIcon, FormCo
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useSupabaseAuth } from '../integrations/supabase/auth.jsx';
-import { useFiles, useAddFile, useUpdateFile, useDeleteFile, useFileVersions, useAddFileVersion, useGroups, useFileAccessPermissions, useAddFileAccessPermission } from '../integrations/supabase/index.js';
+import { useFiles, useAddFile, useUpdateFile, useDeleteFile, useFileVersions, useAddFileVersion, useGroups, useFileAccessPermissions, useAddFileAccessPermission, useUsers } from '../integrations/supabase/index.js';
 
 const FileManagement = () => {
   const { session, loading } = useSupabaseAuth();
@@ -11,6 +11,7 @@ const FileManagement = () => {
   const { data: fileVersions, isLoading: fileVersionsLoading, error: fileVersionsError } = useFileVersions();
   const { data: groups, isLoading: groupsLoading, error: groupsError } = useGroups();
   const { data: fileAccessPermissions, isLoading: fileAccessPermissionsLoading, error: fileAccessPermissionsError } = useFileAccessPermissions();
+  const { data: users, isLoading: usersLoading, error: usersError } = useUsers();
   const { mutate: addFile } = useAddFile();
   const { mutate: updateFile } = useUpdateFile();
   const { mutate: deleteFile } = useDeleteFile();
@@ -61,11 +62,12 @@ const FileManagement = () => {
     addFileAccessPermission(permissionData);
   };
 
-  if (loading || filesLoading || fileVersionsLoading || groupsLoading || fileAccessPermissionsLoading) return <Text>Loading...</Text>;
+  if (loading || filesLoading || fileVersionsLoading || groupsLoading || fileAccessPermissionsLoading || usersLoading) return <Text>Loading...</Text>;
   if (filesError) return <Text>Error: {filesError.message}</Text>;
   if (fileVersionsError) return <Text>Error: {fileVersionsError.message}</Text>;
   if (groupsError) return <Text>Error: {groupsError.message}</Text>;
   if (fileAccessPermissionsError) return <Text>Error: {fileAccessPermissionsError.message}</Text>;
+  if (usersError) return <Text>Error: {usersError.message}</Text>;
 
   return (
     <Container centerContent>
@@ -99,7 +101,6 @@ const FileManagement = () => {
               <FormLabel>Set Permission</FormLabel>
               <Select onChange={(e) => handleSetPermission(file, e.target.value, 'read')}>
                 <option value="">Select User</option>
-                {/* Assuming users data is available */}
                 {users.map(user => (
                   <option key={user.id} value={user.id}>{user.email}</option>
                 ))}
