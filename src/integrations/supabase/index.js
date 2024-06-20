@@ -1,12 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 import { useQuery, useMutation, useQueryClient, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { encrypt, decrypt } from 'crypto-js'; // Add encryption library
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_PROJECT_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_API_KEY;
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 import React from "react";
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 1000 * 60 * 5, // 5 minutes
+            cacheTime: 1000 * 60 * 10, // 10 minutes
+        },
+    },
+});
 export function SupabaseProvider({ children }) {
     return React.createElement(QueryClientProvider, { client: queryClient }, children);
 }
@@ -15,6 +23,15 @@ const fromSupabase = async (query) => {
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     return data;
+};
+
+const encryptData = (data) => {
+    return encrypt(JSON.stringify(data), import.meta.env.VITE_ENCRYPTION_KEY).toString();
+};
+
+const decryptData = (cipherText) => {
+    const bytes = decrypt(cipherText, import.meta.env.VITE_ENCRYPTION_KEY);
+    return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 };
 
 /* supabase integration types
