@@ -7,6 +7,7 @@ import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Profile from "./pages/Profile.jsx";
 import GroupManagement from "./pages/GroupManagement.jsx";
+import TaskManagement from "./pages/TaskManagement.jsx";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route exact path="/register" element={<Register />} />
         <Route exact path="/profile" element={<Profile />} />
         <Route exact path="/group-management" element={<GroupManagement />} />
+        <Route exact path="/task-management" element={<TaskManagement />} />
       </Routes>
     </Router>
   );
